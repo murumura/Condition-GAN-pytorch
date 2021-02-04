@@ -1,4 +1,3 @@
-import argparse
 import configargparse
 from utils import boolean_string
 
@@ -11,13 +10,28 @@ def get_options():
                         help='enable CUDA.')
 
     parser.add_argument('--train', type=boolean_string, default=True, 
-                        help='train mode or eval mode.')
+                        help='train mode.')
 
-    parser.add_argument('--data_dir', type=str, default='~/Data/mnist', 
+    parser.add_argument('--eval', type=boolean_string, default=False, 
+                        help='evaluation mode.')
+
+    parser.add_argument('--config', is_config_file=True, 
+                        help='config file path')
+
+    parser.add_argument("--exp_name", type=str, 
+                        help='experiment name')
+
+    parser.add_argument("--log_dir", type=str, default='./logs/', 
+                        help='where to store ckpts and logs')
+
+    parser.add_argument('--data_dir', type=str, default='./data/datasets/', 
                         help='Directory for dataset.')
 
-    parser.add_argument('--out_dir', type=str, default='output', 
+    parser.add_argument('--out_dir', type=str, default='./output', 
                         help='Directory for output.')
+
+    parser.add_argument("--dataset_type", type=str, default='mnist', 
+                        help='options: mnist / fashion_mnist')
 
     parser.add_argument('--epochs', type=int, default=200, 
                         help='number of epochs')

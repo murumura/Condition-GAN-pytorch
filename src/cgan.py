@@ -27,12 +27,12 @@ class Generator(nn.Module):
             *self._create_linear_layer(128, 256),
             *self._create_linear_layer(256, 512),
             *self._create_linear_layer(512, 1024),
-            nn.Linear(1024, int(torch.prod(self.img_shape))),
+            nn.Linear(1024, int(np.prod(self.img_shape))),
             nn.Tanh()
         )
 
     def _create_linear_layer(self, input_size, output_size, normalize = True):
-        layers = [nn.linear(input_size, output_size)]
+        layers = [nn.Linear(input_size, output_size)]
         if normalize:
             layers.append(nn.BatchNorm1d(output_size))
         layers.append(nn.LeakyReLU(0.2, inplace=True))
@@ -46,6 +46,7 @@ class Generator(nn.Module):
         x = self.model(z)
         x = x.view(x.size(0), *self.img_shape) # x.shape = [batch_size, *image_shape]
         return x
+
 
 class Discriminator(nn.Module):
     def __init__(self, classes, channels, img_size, latent_dim):
@@ -69,31 +70,31 @@ class Discriminator(nn.Module):
         '''
         self.model = nn.Sequential(
             *self._create_linear_layer(
-                input_size = self.classes + int(torch.prod(self.img_shape))
+                input_size = self.classes + int(np.prod(self.img_shape)),
                 output_size = 1024,
                 drop_out = False,
                 activation_func = True
             ),
             *self._create_linear_layer(
-                input_size = 1024
+                input_size = 1024,
                 output_size = 512,
                 drop_out = True,
                 activation_func = True
             ),
             *self._create_linear_layer(
-                input_size = 512
+                input_size = 512,
                 output_size = 256,
                 drop_out = True,
                 activation_func = True
             ),
             *self._create_linear_layer(
-                input_size = 256
+                input_size = 256,
                 output_size = 128,
                 drop_out = False,
                 activation_func = False
             ),
             *self._create_linear_layer(
-                input_size = 128
+                input_size = 128,
                 output_size = 1,
                 drop_out = False,
                 activation_func = False
@@ -101,7 +102,7 @@ class Discriminator(nn.Module):
             nn.Sigmoid()
         )
     def _create_linear_layer(self, input_size, output_size, drop_out = True, activation_func = True):
-        layers = [nn.linear(input_size, output_size)]
+        layers = [nn.Linear(input_size, output_size)]
         if drop_out:
             layers.append(nn.Dropout(0.4))
         if activation_func:

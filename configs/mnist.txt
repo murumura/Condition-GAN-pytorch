@@ -1,0 +1,10 @@
+cuda = True
+exp_name = mnist
+log_dir = ./logs
+data_dir = ./data/datasets/mnist
+dataset_type = mnist
+model = cgan
+classes = 10
+channels = 1
+epochs = 200
+batch_size = 100
