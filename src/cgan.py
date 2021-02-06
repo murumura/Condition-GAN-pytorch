@@ -109,7 +109,7 @@ class Discriminator(nn.Module):
             layers.append(nn.LeakyReLU(0.2, inplace = True))
         return layers
 
-    def forward(self, output, label):
+    def forward(self, image, labels):
         '''
         include the label information in input by concatenation the embedding of labels with image vector
         '''

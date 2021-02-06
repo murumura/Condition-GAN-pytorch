@@ -73,7 +73,18 @@ def train(args):
     ''')
     # Specify the optimizer of the model
     model.create_optim(args.lr)
-    
+    # Start Training
+    logging.info(f'''
+        PyTorch version: {torch.__version__}
+        CUDA version: {torch.version.cuda}
+    ''')
+    model.train(
+        args.epochs, 
+        args.log_interval, 
+        out_dir, 
+        verbose=True, 
+        save_checkpoints=True
+    )
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s') 
     args = get_options().parse_args()

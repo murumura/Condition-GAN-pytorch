@@ -1,6 +1,7 @@
 __pycache__
 data/
 logs/
+output/
 src/__pycache__/opt.cpython-38.pyc
 src/__pycache__/utils.cpython-38.pyc
 *.pyc
