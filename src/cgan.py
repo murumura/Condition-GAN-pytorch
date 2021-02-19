@@ -39,8 +39,9 @@ class Generator(nn.Module):
         return layers
     
     def forward(self, noise, labels):
+        lable_embed =  self.label_embedding(labels)
         z = torch.cat(
-            (self.label_embedding(labels), noise),
+            (lable_embed, noise),
             -1
         )
         x = self.model(z)

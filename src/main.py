@@ -85,6 +85,28 @@ def train(args):
         verbose=True, 
         save_checkpoints=True
     )
+def evaluation(args):
+    # Create output dir for evaluation
+    eval_out_dir = os.path.join(args.eval_dir, args.exp_name)
+    clear_and_create_folder(eval_out_dir)
+    # Create gan model
+    model = ConditionModel(
+        name=args.model, 
+        device=device, 
+        data_loader=None, 
+        classes=args.classes, 
+        channels=args.channels, 
+        img_size=args.img_size, 
+        latent_dim=args.latent_dim
+    )
+    # load model state
+    model.load_state_from(args.state_dir)
+    model.eval(
+        mode=1, 
+        batch_size=args.batch_size,
+        output_dir=eval_out_dir
+    )
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s') 
     args = get_options().parse_args()
@@ -100,3 +122,5 @@ if __name__ == '__main__':
         np.random.seed(args.seed)
     if args.train:
         train(args)
+    elif args.eval:
+        evaluation(args)

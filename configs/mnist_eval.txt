@@ -1,0 +1,9 @@
+cuda = True
+exp_name = mnist
+eval_dir = ./evals
+state_dir = ./output/mnist
+dataset_type = mnist
+model = cgan
+classes = 10
+channels = 1
+batch_size = 128

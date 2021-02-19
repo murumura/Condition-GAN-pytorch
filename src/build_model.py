@@ -195,12 +195,27 @@ class ConditionModel(object):
     def eval(
         self,
         mode=None,
-        batch_size=None
+        batch_size=None,
+        output_dir=None
     ):
         # Sets the module in evaluation mode.
         self.NetG.eval()
         self.NetD.eval()
-
+        if batch_size is None:
+            batch_size = self.data_loader.batch_size
+        nrows = batch_size // 8
+        viz_labels = np.array([num for _ in range(nrows) for num in range(8)])
+        viz_labels = torch.LongTensor(viz_labels).to(self.device)
+        with torch.no_grad():
+            if self.name == 'cgan':
+                viz_tensor = torch.randn(batch_size, self.latent_dim, device=self.device)
+                viz_sample = self.NetG(viz_tensor, viz_labels) # generated image from random noise
+     
+            viz_vector = utils.to_np(viz_tensor).reshape(batch_size, self.latent_dim)
+            cur_time = datetime.now().strftime("%Y%m%d-%H%M%S")
+            np.savetxt(os.path.join(output_dir, 'vec_{}.txt'.format(cur_time)), viz_vector)
+            vutils.save_image(viz_sample, os.path.join(output_dir, 'img_{}.png'.format(cur_time)), nrow=8, normalize=True)
+            logging.info(f'\nSaving evaluation image to {output_dir}...')
 
     def save_to(
         self,
@@ -214,3 +229,24 @@ class ConditionModel(object):
             logging.info('\nSaving models to {}_G.pt and {}_D.pt ...'.format(name, name))
         torch.save(self.NetG.state_dict(), os.path.join(path, '{}_G.pt'.format(name)))
         torch.save(self.NetD.state_dict(), os.path.join(path, '{}_D.pt'.format(name)))
+
+    def load_state_from(
+        self,
+        path='',
+        name=None,
+        verbose=True
+    ):
+        if name is None:
+            name = self.name
+        if verbose:
+            logging.info('\nLoading models from {}_G.pt and {}_D.pt ...'.format(name, name))
+        ckpt_G = torch.load(os.path.join(path, '{}_G.pt'.format(name)))
+        if isinstance(ckpt_G, dict) and 'state_dict' in ckpt_G:
+            self.NetG.load_state_dict(ckpt_G['state_dict'], strict=True)
+        else:
+            self.NetG.load_state_dict(ckpt_G, strict=True)
+        ckpt_D = torch.load(os.path.join(path, '{}_D.pt'.format(name)))
+        if isinstance(ckpt_D, dict) and 'state_dict' in ckpt_D:
+            self.NetD.load_state_dict(ckpt_D['state_dict'], strict=True)
+        else:
+            self.NetD.load_state_dict(ckpt_D, strict=True)

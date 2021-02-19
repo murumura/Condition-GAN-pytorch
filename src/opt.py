@@ -9,7 +9,7 @@ def get_options():
     parser.add_argument('--cuda', type=boolean_string, default=True, 
                         help='enable CUDA.')
 
-    parser.add_argument('--train', type=boolean_string, default=True, 
+    parser.add_argument('--train', type=boolean_string, default=False, 
                         help='train mode.')
 
     parser.add_argument('--eval', type=boolean_string, default=False, 
@@ -28,7 +28,13 @@ def get_options():
                         help='Directory for dataset.')
 
     parser.add_argument('--out_dir', type=str, default='./output', 
-                        help='Directory for output.')
+                        help='Directory for training output.')
+
+    parser.add_argument('--eval_dir', type=str, default='./evals', 
+                        help='Directory for evaluation output.')
+
+    parser.add_argument('--state_dir', type=str, default=None, 
+                        help='where to load state from.')
 
     parser.add_argument("--dataset_type", type=str, default='mnist', 
                         help='options: mnist / fashion_mnist')
