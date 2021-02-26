@@ -1,8 +1,8 @@
 cuda = True
-exp_name = mnist
+exp_name = fashion_mnist
 log_dir = ./logs
-data_dir = ./data/datasets/mnist
-dataset_type = mnist
+data_dir = ./data/datasets/fashion_mnist
+dataset_type = fashion_mnist
 model = cgan
 classes = 10
 img_size = 20

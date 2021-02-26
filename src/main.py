@@ -48,7 +48,15 @@ def train(args):
                              ]))
         dataloader = torch.utils.data.DataLoader(dataset, batch_size=args.batch_size,
                                                  shuffle=True, num_workers=4, pin_memory=True)
-
+    elif args.dataset_type == 'fashion_mnist':
+        dataset = datasets.FashionMNIST(root=args.data_dir, download=True,
+                             transform=transforms.Compose([
+                             transforms.Resize(args.img_size),
+                             transforms.ToTensor(),
+                             transforms.Normalize((0.5,), (0.5,))
+                             ]))
+        dataloader = torch.utils.data.DataLoader(dataset, batch_size=args.batch_size,
+                                                 shuffle=True, num_workers=4, pin_memory=True)
     assert dataset,f'Unsuccessfully loaded {args.dataset_type} dataset!'
 
     logging.info(f'''
