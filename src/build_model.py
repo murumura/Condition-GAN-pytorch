@@ -9,7 +9,18 @@ import torch
 import torchvision.utils as vutils
 import utils
 from cgan import (Generator, Discriminator)
+from infogan import Generator as infoganG, Discriminator as infoganD
 from utils import (plot_cgan_loss, create_gif)
+
+
+def _weights_init_normal(m):
+    classname = m.__class__.__name__
+    if classname.find('Conv') != -1:
+        torch.nn.init.normal_(m.weight.data, 0.0, 0.02)
+    elif classname.find('BatchNorm') != -1:
+        torch.nn.init.normal_(m.weight.data, 1.0, 0.02)
+        torch.nn.init.constant_(m.bias.data, 0.0)
+
 class ConditionModel(object):
     def __init__(
         self, 
@@ -19,7 +30,8 @@ class ConditionModel(object):
         classes, 
         channels, 
         img_size, 
-        latent_dim
+        latent_dim,
+        style_dim=2
     ):
         self.name = name
         self.device = device
@@ -32,6 +44,8 @@ class ConditionModel(object):
         self.NetD = None
         self.optim_G = None
         self.optim_D = None
+        self.optim_info = None
+        self.style_dim = None
         if self.name == 'cgan':
             self.NetG = Generator(
                 self.classes, 
@@ -47,9 +61,29 @@ class ConditionModel(object):
             )
             self.NetG.to(self.device)
             self.NetD.to(self.device)
+        elif self.name == 'infogan':
+            self.style_dim = style_dim
+            self.NetG = infoganG(
+                self.classes, 
+                self.channels, 
+                self.img_size, 
+                self.latent_dim,
+                code_dim=self.style_dim
+            )
+            self.NetG.apply(_weights_init_normal)
+            self.NetD = infoganD(
+                self.classes, 
+                self.channels, 
+                self.img_size, 
+                self.latent_dim,
+                code_dim=self.style_dim
+            )
+            self.NetD.apply(_weights_init_normal)
+            self.NetG.to(self.device)
+            self.NetD.to(self.device)
         assert (self.NetG != None and self.NetD != None),f'Both generator and discriminator cant be none'
     def __repr__(self):
-        if self.name == 'cgan':
+        if self.name == 'cgan' or self.name == 'infogan':
             return str(repr(self.NetD) + '\n' + repr(self.NetG))
 
     @property
@@ -71,7 +105,22 @@ class ConditionModel(object):
             lr = lr,
             betas = (alpha, beta)
         )
+        if self.name == 'infogan':
+            self.optim_info = torch.optim.Adam(
+                itertools.chain(self.NetG.parameters(), self.NetD.parameters()),
+                lr=lr, 
+                betas=(alpha, beta)
+            )
         self.learning_rate = lr # record it merely for later logging
+
+    
+    def _to_onehot(self, var, dim):
+        '''
+        Transforming the label values to one-hot coding
+        '''
+        res = torch.zeros((var.shape[0], dim), device=self.device)
+        res[range(var.shape[0]), var] = 1.
+        return res
 
     def train(
         self,
@@ -84,6 +133,10 @@ class ConditionModel(object):
         # Sets the module in training mode.
         self.NetG.train()
         self.NetD.train()
+        viz_z = torch.zeros(
+            (self.data_loader.batch_size, self.latent_dim), 
+            device=self.device
+        )
         viz_noise = torch.randn(
             self.data_loader.batch_size, 
             self.latent_dim, 
@@ -94,7 +147,8 @@ class ConditionModel(object):
         viz_label = torch.LongTensor(
             np.array([num for _ in range(nrows) for num in range(8)])
         ).to(self.device)
-
+        viz_label = torch.LongTensor(np.array([num for _ in range(nrows) for num in range(8)])).to(self.device)
+        viz_onehot = self._to_onehot(viz_label, dim=self.classes)
         #####  Set up training related parameters  #####
         n_train = len(self.data_loader.dataset)
         total_time = time.time()
