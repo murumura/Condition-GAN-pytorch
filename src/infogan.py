@@ -24,17 +24,22 @@ class Generator(nn.Module):
         self.img_init_size = self.img_size // 4 # Initial size before upsampling
         self.latent_dim = latent_dim
         self.code_dim = code_dim
-        self.img_shape = (
+        self.img_init_shape = (
             128, 
             self.img_init_size, 
             self.img_init_size
+        )
+        self.img_shape= (
+            self.channels, 
+            self.img_size, 
+            self.img_size
         )
         '''
         the first hidden layer that transforms the input tensor with a length of 
         (latent_dim + classes + code_dim) into tensor with shape (128 * img_init_size * img_init_size)
         '''
         self.stem_linear = nn.Sequential(
-            nn.Linear(self.latent_dim + self.classes + self.code_dim, int(np.prod(self.img_init_size)))
+            nn.Linear(self.latent_dim + self.classes + self.code_dim, int(np.prod(self.img_init_shape)))
         )
         '''
         the output tensor of first hidden layer with shape  (128 * img_init_size * img_init_size) will 
@@ -55,6 +60,7 @@ class Generator(nn.Module):
             *self._create_deconv_layer(
                 input_size=64,
                 output_size=self.channels,
+                upsample=False,
                 normalize=False
             ),
             nn.Tanh()
@@ -132,13 +138,18 @@ class Discriminator(nn.Module):
             nn.LeakyReLU(0.2, inplace=True),
             nn.Linear(128, self.classes)
         )
-        
+        self.code_linear = nn.Sequential(
+            nn.Linear(out_linear_dim, 128),
+            nn.BatchNorm1d(128),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Linear(128, self.code_dim)
+        )
         self.adv_loss = torch.nn.MSELoss()
         self.class_loss = torch.nn.CrossEntropyLoss()
         self.style_loss = torch.nn.MSELoss()
 
     def _create_conv_layer(self, input_size, output_size, drop_out=True, normalize=True):
-        layers = [nn.Conv2d(input_size, output_size, 3, 2, 1)]
+        layers = [nn.Conv2d(in_channels=input_size, out_channels=output_size, kernel_size=3, stride=2, padding=1)]
         if drop_out:
             layers.append(nn.LeakyReLU(0.2, inplace=True))
             layers.append(nn.Dropout(0.4))
