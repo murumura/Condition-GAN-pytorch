@@ -8,12 +8,13 @@ class Upsample(nn.Module):
         super(Upsample, self).__init__()
         self.scale_factor = scale_factor
     def forward(self, x):
-        return F.interpolate(
+        x = F.interpolate(
             x, 
             scale_factor=self.scale_factor,
             mode='bilinear',
             align_corners=False
         )
+        return x
 
 class Generator(nn.Module):
     def __init__(self, classes, channels, img_size, latent_dim, code_dim):
@@ -29,7 +30,7 @@ class Generator(nn.Module):
             self.img_init_size, 
             self.img_init_size
         )
-        self.img_shape= (
+        self.img_shape = (
             self.channels, 
             self.img_size, 
             self.img_size
@@ -130,8 +131,9 @@ class Discriminator(nn.Module):
         )
         out_linear_dim = 128 * (self.img_size // 16) * (self.img_size // 16)
         # output layers
-        # probability distribution output: Q(c|x)
+        # real/fake
         self.adv_linear = nn.Linear(out_linear_dim, 1)
+        # auxiliary vector output: include class fidelity and latent code fidelity 
         self.class_linear = nn.Sequential(
             nn.Linear(out_linear_dim, 128),
             nn.BatchNorm1d(128),
@@ -146,7 +148,7 @@ class Discriminator(nn.Module):
         )
         self.adv_loss = torch.nn.MSELoss()
         self.class_loss = torch.nn.CrossEntropyLoss()
-        self.style_loss = torch.nn.MSELoss()
+        self.continuous_loss = torch.nn.MSELoss() # style fidelity 
 
     def _create_conv_layer(self, input_size, output_size, drop_out=True, normalize=True):
         layers = [nn.Conv2d(in_channels=input_size, out_channels=output_size, kernel_size=3, stride=2, padding=1)]
@@ -160,7 +162,7 @@ class Discriminator(nn.Module):
     def forward(self, image):
         y_img = self.model(image)
         y_vec = y_img.view(y_img.shape[0], -1)
-        y = self.adv_linear(y_vec)
+        validity = self.adv_linear(y_vec) # output real/fake
         label = F.softmax(self.class_linear(y_vec), dim=1)
         latent_code = self.code_linear(y_vec)
-        return y, label, latent_code
+        return validity, label, latent_code

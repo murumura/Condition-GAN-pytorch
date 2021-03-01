@@ -200,6 +200,10 @@ class ConditionModel(object):
                     # Train Generator
                     self.NetG.zero_grad()
                     z_noise = torch.randn(batch_size, self.latent_dim, device=self.device)
+                    '''
+                    we sample a single feature c from a uniform distribution and convert it to a 1-hot vector.
+                    then the generator uses this vector and z to generate an image.
+                    '''
                     x_fake_labels = torch.randint(0, self.classes, (batch_size,), device=self.device)
                     if self.name == 'cgan':
                         x_fake = self.NetG(z_noise, x_fake_labels)
@@ -253,7 +257,7 @@ class ConditionModel(object):
                         x_fake = self.NetG(z_noise, labels_onehot, z_code)
                         _, label_fake, code_fake = self.NetD(x_fake)
                         info_loss = self.NetD.class_loss(label_fake, x_fake_labels) +\
-                                self.NetD.style_loss(code_fake, z_code)
+                                self.NetD.continuous_loss(code_fake, z_code)
                         info_loss.backward()
                         self.optim_info.step()
 
