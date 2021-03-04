@@ -258,6 +258,7 @@ class ConditionModel(object):
                         _, label_fake, code_fake = self.NetD(x_fake)
                         info_loss = self.NetD.class_loss(label_fake, x_fake_labels) +\
                                 self.NetD.continuous_loss(code_fake, z_code)
+                        Info_losses.append(info_loss.item()) # record mutual information loss
                         info_loss.backward()
                         self.optim_info.step()
 
@@ -299,6 +300,10 @@ class ConditionModel(object):
                     epoches=epoches, 
                     save_dir=output_dir
                 )
+            elif self.name == 'infogan':
+                train_hist['D_losses'].append(torch.mean(torch.FloatTensor(D_losses)))
+                train_hist['G_losses'].append(torch.mean(torch.FloatTensor(G_losses)))
+                train_hist['Info_losses'].append(torch.mean(torch.FloatTensor(Info_losses)))
         # plot git of training loss and synsethesis images
         create_gif(
             epoches=epoches, 
@@ -306,7 +311,7 @@ class ConditionModel(object):
             gan_name_prefix=self.name
         )
         if verbose:
-            logging.info('Total train time: {:.2f}'.format(time.time() - total_time))
+            logging.info('Total train time: {:.2f} s'.format(time.time() - total_time))
 
     def eval(
         self,
