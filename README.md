@@ -13,6 +13,17 @@ python3 src/main.py --config configs/infogan_mnist.txt --train True
 ```
 #### Result
 
+Training using infogan model 
+```bash
+src/main.py --config configs/infogan_mnist.txt --train True
+```
+Result
+<p align="center" width="100%">
+    <img width="50%" src="data/asset/mnist/infogan_mnist_loss.gif"> 
+    <img width="33%" src="data/asset/mnist/infogan_mnist.gif"> 
+</p>
+
+
 ### Fashion-MNIST
 ```bash
 # training using mnist
@@ -20,7 +31,11 @@ python3 src/main.py --config configs/cgan_fashion_mnist.txt --train True
 # evaluation 
 python3 src/main.py --config configs/cgan_fashion_mnist_eval.txt --eval True
 ```
-#### Result
-<center class="half">
-    <img src="data/asset/fashion_mnist/loss.gif" width="200"/><img src="data/asset/fashion_mnist/synsethesis.gif" width="200"/>
-</center>
+#### Result 
+<p align="center" width="100%">
+    <img width="50%" src="data/asset/fashion_mnist/loss.gif"> 
+    <img width="33%" src="data/asset/fashion_mnist/synsethesis.gif"> 
+</p>
+
+
+

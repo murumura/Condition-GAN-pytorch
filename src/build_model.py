@@ -10,7 +10,7 @@ import torchvision.utils as vutils
 import utils
 from cgan import (Generator, Discriminator)
 from infogan import Generator as infoganG, Discriminator as infoganD
-from utils import (plot_cgan_loss, create_gif)
+from utils import (plot_cgan_loss, plot_infogan_loss, create_gif)
 
 
 def _weights_init_normal(m):
@@ -304,6 +304,14 @@ class ConditionModel(object):
                 train_hist['D_losses'].append(torch.mean(torch.FloatTensor(D_losses)))
                 train_hist['G_losses'].append(torch.mean(torch.FloatTensor(G_losses)))
                 train_hist['Info_losses'].append(torch.mean(torch.FloatTensor(Info_losses)))
+                plot_infogan_loss(
+                    d_loss=train_hist['D_losses'], 
+                    g_loss=train_hist['G_losses'], 
+                    info_loss=train_hist['Info_losses'],
+                    num_epoch=epoch + 1, 
+                    epoches=epoches, 
+                    save_dir=output_dir
+                )
         # plot git of training loss and synsethesis images
         create_gif(
             epoches=epoches, 

@@ -62,7 +62,7 @@ def plot_infogan_loss(d_loss, g_loss, info_loss, num_epoch, epoches, save_dir):
 
     fig, ax = plt.subplots()
     ax.set_xlim(0,epoches + 1)
-    ax.set_ylim(0, max(np.max(g_loss), np.max(d_loss)) * 1.1)
+    ax.set_ylim(0, max(np.max(g_loss), np.max(d_loss), np.max(info_loss)) * 1.1)
     plt.xlabel('Epoch {}'.format(num_epoch))
     plt.ylabel('Loss')
     
