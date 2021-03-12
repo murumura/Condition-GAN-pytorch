@@ -15,7 +15,7 @@ python3 src/main.py --config configs/infogan_mnist.txt --train True
 
 Training using infogan model 
 ```bash
-src/main.py --config configs/infogan_mnist.txt --train True
+python3 src/main.py --config configs/infogan_mnist.txt --train True
 ```
 Result
 <p align="center" width="100%">
